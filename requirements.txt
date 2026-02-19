@@ -1,5 +1,3 @@
 pandas
 scikit-learn
-streamlit
-altair<5
-imghdr
+streamlit>=1.40.0
