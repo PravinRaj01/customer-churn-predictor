@@ -86,11 +86,12 @@ export function ChargesField({ value, onChange }: ChargesFieldProps) {
             }}
             onKeyDown={(e) => {
               if (e.key !== "Enter") return;
-              // Apply final clamping/formatting immediately so the
-              // display is correct even though Enter won't blur the
-              // field. The native submit still fires right after — by
-              // now the parent already has the right value from onChange
-              // above, so it submits current data, not stale data.
+              // Enter commits/formats the value only — it must not also
+              // submit the form. preventDefault stops the native
+              // implicit submission a text input triggers on Enter
+              // inside a <form>; only the "Churn It" button should ever
+              // start a prediction.
+              e.preventDefault();
               const parsed = parseFloat(draft);
               commit(Number.isFinite(parsed) ? parsed : value);
             }}
