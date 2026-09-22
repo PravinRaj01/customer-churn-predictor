@@ -10,6 +10,10 @@ web/.next/
 web/out/
 web/.env*.local
 
+# Local-only design notes — kept on disk for reference, deliberately never
+# pushed to GitHub.
+/docs/
+
 # Editors / OS
 .DS_Store
 Thumbs.db
