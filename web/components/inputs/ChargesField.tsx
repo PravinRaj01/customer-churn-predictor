@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from "motion/react";
 import { Label } from "@/components/ui/Label";
 import { cn } from "@/lib/cn";
 
@@ -12,6 +13,7 @@ interface ChargesFieldProps {
 const MIN = 0;
 const MAX = 150;
 const STEP = 0.5;
+const CLAMP_MESSAGE_MS = 2200;
 
 /**
  * "The Cream Line" — Monthly Charges (0-150). A cream-level fill rises
@@ -22,7 +24,11 @@ const STEP = 0.5;
  * own odometer-roll transition (see blueprint §2.2).
  */
 export function ChargesField({ value, onChange }: ChargesFieldProps) {
+  const reduceMotion = useReducedMotion();
   const [draft, setDraft] = useState(value.toFixed(2));
+  const [clampMessage, setClampMessage] = useState<string | null>(null);
+  const clampTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shakeControls = useAnimationControls();
 
   const fillPercent = Math.min(100, Math.max(0, (value / MAX) * 100));
 
@@ -30,18 +36,53 @@ export function ChargesField({ value, onChange }: ChargesFieldProps) {
     const clamped = Math.min(MAX, Math.max(MIN, next));
     onChange(clamped);
     setDraft(clamped.toFixed(2));
+
+    // Only surface feedback when the raw input actually exceeded the
+    // range — not on ordinary re-formatting of an already-valid number
+    // (e.g. "50" -> "50.00").
+    if (clamped !== next) {
+      if (clampTimeoutRef.current) clearTimeout(clampTimeoutRef.current);
+      setClampMessage(`Capped at $${clamped.toFixed(2)}`);
+      clampTimeoutRef.current = setTimeout(
+        () => setClampMessage(null),
+        CLAMP_MESSAGE_MS,
+      );
+
+      if (!reduceMotion) {
+        shakeControls.start({
+          x: [0, -6, 6, -4, 4, 0],
+          transition: { duration: 0.35, ease: "easeInOut" },
+        });
+      } else {
+        // No horizontal motion under reduced-motion, but still give a
+        // brief non-color cue via a quick opacity pulse on the border.
+        shakeControls.start({ opacity: [1, 0.7, 1], transition: { duration: 0.3 } });
+      }
+    }
   }
 
   function step(delta: number) {
     commit(Math.round((value + delta) / STEP) * STEP);
   }
 
+  useEffect(() => {
+    return () => {
+      if (clampTimeoutRef.current) clearTimeout(clampTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <div>
       <Label htmlFor="monthly-charges">The Cream Line</Label>
       <p className="mt-0.5 text-xs text-ink-500">Monthly charges, in dollars</p>
 
-      <div className="relative mt-2 overflow-hidden rounded-2xl border border-border bg-cream-200">
+      <motion.div
+        animate={shakeControls}
+        className={cn(
+          "relative mt-2 overflow-hidden rounded-2xl border bg-cream-200 transition-colors duration-300",
+          clampMessage ? "border-sour-400" : "border-border",
+        )}
+      >
         {/* Cream fill — the "meniscus" */}
         <div
           className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-butter-300/45 to-transparent transition-[height] duration-300"
@@ -95,6 +136,7 @@ export function ChargesField({ value, onChange }: ChargesFieldProps) {
               const parsed = parseFloat(draft);
               commit(Number.isFinite(parsed) ? parsed : value);
             }}
+            aria-describedby={clampMessage ? "monthly-charges-clamp" : undefined}
             className={cn(
               "font-display tnum w-full rounded-lg bg-transparent text-4xl text-ink-900",
               "outline-none focus-visible:ring-4 focus-visible:ring-butter-500/25",
@@ -110,7 +152,23 @@ export function ChargesField({ value, onChange }: ChargesFieldProps) {
             +
           </button>
         </div>
-      </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {clampMessage && (
+          <motion.p
+            id="monthly-charges-clamp"
+            role="status"
+            aria-live="polite"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-1.5 text-xs text-sepia-800"
+          >
+            {clampMessage} — that&apos;s the field&apos;s range.
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
