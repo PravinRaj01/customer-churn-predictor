@@ -16,7 +16,10 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-10 px-4 py-16 sm:py-24">
       <header className="text-center">
-        <h1 className="font-display text-[clamp(2.5rem,6vw,4rem)] text-ink-900">
+        <p className="text-[0.8125rem] font-medium uppercase tracking-wide text-butter-700">
+          Customer Churn Predictor
+        </p>
+        <h1 className="mt-1 font-display text-[clamp(2.5rem,6vw,4rem)] text-ink-900">
           Will they churn?
         </h1>
         <p className="mt-3 text-ink-500">

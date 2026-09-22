@@ -39,6 +39,7 @@ export function ChargesField({ value, onChange }: ChargesFieldProps) {
   return (
     <div>
       <Label htmlFor="monthly-charges">The Cream Line</Label>
+      <p className="mt-0.5 text-xs text-ink-500">Monthly charges, in dollars</p>
 
       <div className="relative mt-2 overflow-hidden rounded-2xl border border-border bg-cream-200">
         {/* Cream fill — the "meniscus" */}
@@ -66,8 +67,30 @@ export function ChargesField({ value, onChange }: ChargesFieldProps) {
             type="text"
             inputMode="decimal"
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setDraft(next);
+              // Sync the parent on every keystroke that already parses,
+              // not just on blur. Pressing Enter inside a <form> submits
+              // natively without ever firing blur, so if the parent's
+              // value only ever updated on blur, Enter would submit
+              // whatever was typed *before* this edit. Clamping is still
+              // deferred to commit() below, so typing "1" on the way to
+              // "100" is never blocked mid-keystroke.
+              const parsed = parseFloat(next);
+              if (Number.isFinite(parsed)) onChange(parsed);
+            }}
             onBlur={() => {
+              const parsed = parseFloat(draft);
+              commit(Number.isFinite(parsed) ? parsed : value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              // Apply final clamping/formatting immediately so the
+              // display is correct even though Enter won't blur the
+              // field. The native submit still fires right after — by
+              // now the parent already has the right value from onChange
+              // above, so it submits current data, not stale data.
               const parsed = parseFloat(draft);
               commit(Number.isFinite(parsed) ? parsed : value);
             }}

@@ -68,9 +68,12 @@ export function TenureSlider({ value, onChange }: TenureSliderProps) {
 
   return (
     <div>
-      <div className="mb-2 flex items-baseline justify-between">
-        <Label htmlFor="tenure">Time in the Churn</Label>
-        <span className="font-display text-lg text-ink-900 tnum">
+      <div className="mb-2 flex items-start justify-between gap-4">
+        <div>
+          <Label htmlFor="tenure">Time in the Churn</Label>
+          <p className="mt-0.5 text-xs text-ink-500">Customer tenure, in months</p>
+        </div>
+        <span className="font-display text-lg text-ink-900 tnum shrink-0">
           {formatTenure(value)}
         </span>
       </div>
