@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Churnwell — The Butter Churn Predictor",
+  title: "Churnwell — Customer Churn Predictor",
   description:
     "Will your customer cancel? Turn the crank and watch the cream break.",
 };
