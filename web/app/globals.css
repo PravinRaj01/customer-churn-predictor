@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+/*
+ * Butter Churn design tokens.
+ * See docs/BUTTER_CHURN_BLUEPRINT.md §1.2 for the full palette rationale.
+ * Three families only: cream (surfaces), butter/gold (action + success),
+ * ink (all readable text). Curdle tones are reserved for the high-risk
+ * result state and never touch body text.
+ */
+:root {
+  --cream-50: #fffdf7;
+  --cream-100: #fdf8ea;
+  --cream-200: #f7efd9;
+  --cream-300: #efe2c0;
+
+  --butter-300: #f8d98a;
+  --butter-400: #f3c34e;
+  --butter-500: #e8a317;
+  --butter-600: #c8860d;
+  --butter-700: #9c6608;
+
+  --ink-900: #1a1712;
+  --ink-700: #3c352b;
+  --ink-500: #6b6153;
+  --ink-300: #a79c88;
+
+  /* Text painted directly on a gold surface (the primary button, the
+     active segmented pill). Gold stays the same brightness in both
+     themes, so this token intentionally never changes with color scheme —
+     unlike ink-900 below, which lightens for dark mode. Using ink-900 for
+     both purposes was tried and fails an automated contrast check: gold
+     buttons need dark text in both themes, headings need light text in
+     dark mode — one token can't do both. */
+  --ink-on-gold: #1a1712;
+
+  --sour-400: #d4a017;
+  --sepia-600: #a8761f;
+  --sepia-800: #6b4a12;
+  --whey-300: #e3e7d3;
+
+  --surface: var(--cream-100);
+  --bg: var(--cream-50);
+  --text: var(--ink-900);
+  --border: var(--cream-300);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14110c;
+    --surface: #1e1a13;
+    --text: #f4edcc;
+    --border: #332b1e;
+    /* cream-100 is lighter than cream-200 in light mode (it's what makes
+       the charges-field steppers and ChurnBarrel's body read as "raised"
+       against their surroundings) — mirror that ordering in dark mode
+       rather than leaving cream-100 unset. Left unset, it stayed at its
+       light-mode value while ink-700 (paired with it on the steppers)
+       lightened for dark mode, producing light text on a light circle.
+       Kept distinct from cream-300 (not equal to it) so the steppers'
+       hover:bg-cream-300 state is still visibly different from rest. */
+    --cream-100: #3a301f;
+    --cream-200: #2a2318;
+    --cream-300: #332b1e;
+    --ink-900: #f4edcc;
+    --ink-700: #dcd2bc;
+    --ink-500: #b8ac94;
+
+    /* butter-700/sepia-800 are used as text over alpha-tinted chip and
+       banner backgrounds (Chip.tsx, the jammed error banner). Those tints
+       blend dark against the dark surface, so the light-mode dark-brown
+       values (tuned for a pale blended background) fail contrast here —
+       lighten both for dark mode specifically. */
+    --butter-700: #f3d27a;
+    --sepia-800: #e0b464;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #14110c;
+  --surface: #1e1a13;
+  --text: #f4edcc;
+  --border: #332b1e;
+  --cream-100: #3a301f;
+  --cream-200: #2a2318;
+  --cream-300: #332b1e;
+  --ink-900: #f4edcc;
+  --ink-700: #dcd2bc;
+  --ink-500: #b8ac94;
+  /* Keep in sync with the prefers-color-scheme block above. */
+  --butter-700: #f3d27a;
+  --sepia-800: #e0b464;
+}
+
+@theme inline {
+  --color-cream-50: var(--cream-50);
+  --color-cream-100: var(--cream-100);
+  --color-cream-200: var(--cream-200);
+  --color-cream-300: var(--cream-300);
+
+  --color-butter-300: var(--butter-300);
+  --color-butter-400: var(--butter-400);
+  --color-butter-500: var(--butter-500);
+  --color-butter-600: var(--butter-600);
+  --color-butter-700: var(--butter-700);
+
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-ink-300: var(--ink-300);
+  --color-ink-on-gold: var(--ink-on-gold);
+
+  --color-sour-400: var(--sour-400);
+  --color-sepia-600: var(--sepia-600);
+  --color-sepia-800: var(--sepia-800);
+  --color-whey-300: var(--whey-300);
+
+  --color-surface: var(--surface);
+  --color-bg: var(--bg);
+  --color-border: var(--border);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Display typography: Fraunces with softened, slightly wonky terminals —
+   the one serif that reads as "creamy" rather than "editorial". */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-variation-settings:
+    "SOFT" 80,
+    "WONK" 1,
+    "opsz" 96;
+  font-weight: 600;
+}
+
+/* Tabular figures on every number that changes, so a probability counting
+   up doesn't jitter its own width mid-animation. */
+.tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Fixed, subtle grain over the whole page — flat cream reads as beige,
+   grain reads as churned dairy. Opacity is bumped in the curdled result
+   state via the .grain-heavy modifier (added in Phase 3). */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
+
+.grain-overlay.grain-heavy {
+  opacity: 0.06;
+}
+
+/*
+ * Tenure slider — "Time in the Churn". The native <input type="range">
+ * stays for keyboard/a11y and hit-testing, but is rendered fully
+ * transparent ("ghost"): the visible track/fill/thumb is a separate
+ * motion-driven overlay in TenureSlider.tsx that trails this input's
+ * value through a spring. A visible focus ring is drawn on the ghost
+ * input itself so keyboard focus is never invisible.
+ */
+.tenure-slider--ghost {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.tenure-slider--ghost::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  opacity: 0;
+  cursor: grab;
+}
+
+.tenure-slider--ghost::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.tenure-slider--ghost::-moz-range-thumb {
+  width: 1.75rem;
+  height: 1.75rem;
+  opacity: 0;
+  border: none;
+  cursor: grab;
+}
+
+.tenure-slider--ghost::-moz-range-track {
+  background: transparent;
+}
+
+.tenure-slider--ghost:focus-visible {
+  box-shadow: 0 0 0 4px rgba(232, 163, 23, 0.25);
+  border-radius: 9999px;
+}
+
+/*
+ * ChurnBarrel's prefers-reduced-motion fallback: the crank and slosh
+ * freeze at rest (handled in JS), replaced by a gentle breathing opacity
+ * on the barrel and an indeterminate progress bar underneath.
+ */
+@keyframes churn-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes churn-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+/* High-risk warning chip — slow enough to read as concern, not alarm. */
+@keyframes chip-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+
+.chip-breathe {
+  animation: chip-breathe 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-breathe {
+    animation: none;
+  }
+}
