@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: butter-churn-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      # Render's default runtime (3.14.3 as of 2026) has no scikit-learn
+      # 1.6.1 wheels — the exact version baked into churn_model.pkl. This
+      # pin is mandatory, not a preference; without it the build fails.
+      - key: PYTHON_VERSION
+        value: 3.12.14
