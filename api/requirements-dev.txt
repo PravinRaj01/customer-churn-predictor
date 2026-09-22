@@ -1,0 +1,5 @@
+# Local development / testing only — Render's build uses requirements.txt
+# alone, so pytest and httpx never ship to production.
+-r requirements.txt
+pytest>=8.3,<9
+httpx>=0.28,<1

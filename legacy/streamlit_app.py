@@ -1,13 +1,19 @@
 import streamlit as st
 import pandas as pd
 import pickle
+import os
 
 # 1. Load the saved Gradient Boosting model and column names
+# Paths are resolved relative to this file so the app still works after
+# moving to legacy/ — the .pkl artifacts stay at the repo root, shared
+# with the new FastAPI backend in api/.
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 @st.cache_resource
 def load_model():
-    with open('churn_model.pkl', 'rb') as file:
+    with open(os.path.join(_ROOT, 'churn_model.pkl'), 'rb') as file:
         model = pickle.load(file)
-    with open('model_columns.pkl', 'rb') as file:
+    with open(os.path.join(_ROOT, 'model_columns.pkl'), 'rb') as file:
         cols = pickle.load(file)
     return model, cols
 
