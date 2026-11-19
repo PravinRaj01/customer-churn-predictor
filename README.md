@@ -8,7 +8,7 @@ whether that customer will cancel, along with a probability score.
 
 ## Stack
 
-- **Frontend** (`web/`) — Next.js 15, React 19, TypeScript, Tailwind CSS v4,
+- **Frontend** (`web/`) — Next.js 16, React 19, TypeScript, Tailwind CSS v4,
   Motion (Framer Motion) for the animated "Butter Churn" interface
 - **Backend** (`api/`) — FastAPI, scikit-learn 1.6.1, pandas, Pydantic v2
 - **Deployed on** Vercel (frontend) + Render (API), both on free tiers
